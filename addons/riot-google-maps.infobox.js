@@ -121,7 +121,66 @@ function getEnumerableProperties (object) {
 
 module.exports = equal
 
-},{"jkroso-type":3}],2:[function(require,module,exports){
+},{"jkroso-type":2}],2:[function(require,module,exports){
+var toString = {}.toString
+var DomNode = typeof window != 'undefined'
+  ? window.Node
+  : Function // could be any function
+
+/**
+ * Return the type of `val`.
+ *
+ * @param {Mixed} val
+ * @return {String}
+ * @api public
+ */
+
+module.exports = exports = function type(x){
+  var type = typeof x
+  if (type != 'object') return type
+  type = types[toString.call(x)]
+  if (type == 'object') {
+    // in case they have been polyfilled
+    if (x instanceof Map) return 'map'
+    if (x instanceof Set) return 'set'
+    return 'object'
+  }
+  if (type) return type
+  if (x instanceof DomNode) switch (x.nodeType) {
+    case 1:  return 'element'
+    case 3:  return 'text-node'
+    case 9:  return 'document'
+    case 11: return 'document-fragment'
+    default: return 'dom-node'
+  }
+}
+
+var types = exports.types = {
+  '[object Function]': 'function',
+  '[object Date]': 'date',
+  '[object RegExp]': 'regexp',
+  '[object Arguments]': 'arguments',
+  '[object Array]': 'array',
+  '[object Set]': 'set',
+  '[object String]': 'string',
+  '[object Null]': 'null',
+  '[object Undefined]': 'undefined',
+  '[object Number]': 'number',
+  '[object Boolean]': 'boolean',
+  '[object Object]': 'object',
+  '[object Map]': 'map',
+  '[object Text]': 'text-node',
+  '[object Uint8Array]': 'bit-array',
+  '[object Uint16Array]': 'bit-array',
+  '[object Uint32Array]': 'bit-array',
+  '[object Uint8ClampedArray]': 'bit-array',
+  '[object Error]': 'error',
+  '[object FormData]': 'form-data',
+  '[object File]': 'file',
+  '[object Blob]': 'blob'
+}
+
+},{}],3:[function(require,module,exports){
 /**
  * @name InfoBox
  * @version 1.1.13 [March 19, 2014]
@@ -943,65 +1002,6 @@ InfoBox.prototype.close = function () {
 
 module.exports = InfoBox;
 
-},{}],3:[function(require,module,exports){
-var toString = {}.toString
-var DomNode = typeof window != 'undefined'
-  ? window.Node
-  : Function // could be any function
-
-/**
- * Return the type of `val`.
- *
- * @param {Mixed} val
- * @return {String}
- * @api public
- */
-
-module.exports = exports = function type(x){
-  var type = typeof x
-  if (type != 'object') return type
-  type = types[toString.call(x)]
-  if (type == 'object') {
-    // in case they have been polyfilled
-    if (x instanceof Map) return 'map'
-    if (x instanceof Set) return 'set'
-    return 'object'
-  }
-  if (type) return type
-  if (x instanceof DomNode) switch (x.nodeType) {
-    case 1:  return 'element'
-    case 3:  return 'text-node'
-    case 9:  return 'document'
-    case 11: return 'document-fragment'
-    default: return 'dom-node'
-  }
-}
-
-var types = exports.types = {
-  '[object Function]': 'function',
-  '[object Date]': 'date',
-  '[object RegExp]': 'regexp',
-  '[object Arguments]': 'arguments',
-  '[object Array]': 'array',
-  '[object Set]': 'set',
-  '[object String]': 'string',
-  '[object Null]': 'null',
-  '[object Undefined]': 'undefined',
-  '[object Number]': 'number',
-  '[object Boolean]': 'boolean',
-  '[object Object]': 'object',
-  '[object Map]': 'map',
-  '[object Text]': 'text-node',
-  '[object Uint8Array]': 'bit-array',
-  '[object Uint16Array]': 'bit-array',
-  '[object Uint32Array]': 'bit-array',
-  '[object Uint8ClampedArray]': 'bit-array',
-  '[object Error]': 'error',
-  '[object FormData]': 'form-data',
-  '[object File]': 'file',
-  '[object Blob]': 'blob'
-}
-
 },{}],4:[function(require,module,exports){
 'use strict';
 
@@ -1149,7 +1149,7 @@ function InfoBoxMixin() {
   };
 }
 
-},{"../../utils":12,"../events":6,"google-maps-infobox":2}],8:[function(require,module,exports){
+},{"../../utils":12,"../events":6,"google-maps-infobox":3}],8:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1263,7 +1263,14 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports["default"] = registerEvents;
 
-var addListener = function addListener() {};
+var hasOwnProperty = function hasOwnProperty(obj, prop) {
+  try {
+    return Object.prototype.hasOwnProperty.call(obj, prop);
+  } catch (e) {
+    return prop in obj;
+  }
+},
+    addListener = function addListener() {};
 if (!!window.google) {
   addListener = google.maps.event.addListener;
 };
@@ -1272,7 +1279,7 @@ function registerEvents(eventList, handlers, instance) {
   var registeredEvents = eventList.reduce(function (acc, eventName) {
     var onEventName = "on" + eventName;
 
-    if (handlers.hasOwnProperty(onEventName)) {
+    if (hasOwnProperty(handlers, onEventName)) {
       acc.push(addListener(instance, eventName, handlers[onEventName]));
     }
 
